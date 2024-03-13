@@ -7,9 +7,30 @@
 public class BinomialHeap
 {
 	public int size;
+	public HeapNode first;
 	public HeapNode last;
 	public HeapNode min;
+	public HeapNode prevMin;
+	public int numTree;
 
+	public BinomialHeap(){
+		size=0; first=null; last=null; min=null; prevMin=null; numTree=0;
+	}
+	// for merge purposes only, take a part of previous heap and turn into new heap
+	private BinomialHeap(HeapNode node){
+		size=1<<node.rank; numTree=1; first=node; last=node; min=node;
+		minkey=node.item.key;
+		node.parent=null;
+		while(last.next!=first){
+			last=last.next;
+			last.parent=null;
+			numTree++; size+=1<<last.rank;
+			if (last.item.key<minKey){
+				minKey=last.item.key;
+				min=last;
+			}
+		}
+	}
 	/**
 	 * 
 	 * pre: key > 0
@@ -19,18 +40,56 @@ public class BinomialHeap
 	 */
 	public HeapItem insert(int key, String info) 
 	{    
-		return; // should be replaced by student code
+		if (size==0){
+			HeapItem item=new HeapItem(null,key,info);
+			HeapNode node=new HeapNode(item,null,null,null,0);
+			item.node=node;
+			node.next=node;
+			numTree=1; size=1; last=node; min=node;first=node;preMiv=node;
+			return item;
+		}
+		BinomialHeap heap1=new BinomialHeap();
+		item=heap1.insert(key,info);
+		meld(heap1);
+		return item; // should be replaced by student code
 	}
+
 
 	/**
 	 * 
 	 * Delete the minimal item
-	 *
+	 * 
 	 */
 	public void deleteMin()
 	{
-		return; // should be replaced by student code
-
+		size-=1<<min.rank;
+		numTree-=1;
+		if (size==0){
+			first=null; min=null; prevMin=null;last=null;
+			return;
+		}
+		prevMin.next=min.next;
+		locateNextMin();
+		p=min.child;
+		BinomialHeap children=new BinomialHeap(p);
+		merge(chidren);
+	}
+	/*
+	 * Locates the minimum in heap, sets min to it and prevMin to the node before it. 
+	 * runs in O(numTree)=O(log(n)) time
+	 */
+	private void locateNextMin(){
+		prevMin=last;
+		HeapNode cur=first;
+		min=first;
+		while (cur.next!=first){
+			HeapNode nxt=cur.next;
+			if (nxt.item.key<min.item.key){
+				prevMin=cur;
+				min=nxt;
+			}
+			cur=nxt;
+		}
 	}
 
 	/**
@@ -40,7 +99,7 @@ public class BinomialHeap
 	 */
 	public HeapItem findMin()
 	{
-		return null; // should be replaced by student code
+		return min.item;
 	} 
 
 	/**
@@ -62,7 +121,10 @@ public class BinomialHeap
 	 */
 	public void delete(HeapItem item) 
 	{    
-		return; // should be replaced by student code
+		minKey=min.item.key;
+		diff=item.key-minKey;
+		decreaseKey(item,diff);
+		deleteMin();
 	}
 
 	/**
@@ -82,7 +144,7 @@ public class BinomialHeap
 	 */
 	public int size()
 	{
-		return 42; // should be replaced by student code
+		return size;
 	}
 
 	/**
@@ -93,7 +155,7 @@ public class BinomialHeap
 	 */
 	public boolean empty()
 	{
-		return false; // should be replaced by student code
+		return size==0;
 	}
 
 	/**
@@ -103,7 +165,7 @@ public class BinomialHeap
 	 */
 	public int numTrees()
 	{
-		return 0; // should be replaced by student code
+		return numTree;
 	}
 
 	/**
@@ -116,6 +178,9 @@ public class BinomialHeap
 		public HeapNode next;
 		public HeapNode parent;
 		public int rank;
+		public HeapNode(HeapItem it, HeapNode chld, HeapNode nxt, HeapNode prnt, int rk){
+			item=it; child=chld; next=nxt; parent=prnt; rank=rk;
+		}
 	}
 
 	/**
@@ -126,6 +191,13 @@ public class BinomialHeap
 		public HeapNode node;
 		public int key;
 		public String info;
+		public HeapItem(HeapNode nd, int ke, String inf){
+			node=nd; key=ke; info=inf;
+		}
+	}
+
+	public static void main(String[] args){
+		System.out.println("hello world");
 	}
 
 }
