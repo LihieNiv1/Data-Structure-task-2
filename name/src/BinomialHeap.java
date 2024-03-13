@@ -13,20 +13,21 @@ public class BinomialHeap
 	public HeapNode prevMin;
 	public int numTree;
 
+	/*Initialises an empty heap*/
 	public BinomialHeap(){
 		size=0; first=null; last=null; min=null; prevMin=null; numTree=0;
 	}
-	// for merge purposes only, take a part of previous heap and turn into new heap
+	// for meld purposes only, take a part of previous heap and turn into new heap
 	private BinomialHeap(HeapNode node){
 		size=1<<node.rank; numTree=1; first=node; last=node; min=node;
-		minkey=node.item.key;
+		int minkey=node.item.key;
 		node.parent=null;
 		while(last.next!=first){
 			last=last.next;
 			last.parent=null;
 			numTree++; size+=1<<last.rank;
-			if (last.item.key<minKey){
-				minKey=last.item.key;
+			if (last.item.key<minkey){
+				minkey=last.item.key;
 				min=last;
 			}
 		}
@@ -45,11 +46,11 @@ public class BinomialHeap
 			HeapNode node=new HeapNode(item,null,null,null,0);
 			item.node=node;
 			node.next=node;
-			numTree=1; size=1; last=node; min=node;first=node;preMiv=node;
+			numTree=1; size=1; last=node; min=node;first=node;prevMin=node;
 			return item;
 		}
 		BinomialHeap heap1=new BinomialHeap();
-		item=heap1.insert(key,info);
+		HeapItem item=heap1.insert(key,info);
 		meld(heap1);
 		return item; // should be replaced by student code
 	}
@@ -70,9 +71,9 @@ public class BinomialHeap
 		}
 		prevMin.next=min.next;
 		locateNextMin();
-		p=min.child;
+		HeapNode p=min.child;
 		BinomialHeap children=new BinomialHeap(p);
-		merge(chidren);
+		meld(children);
 	}
 	/*
 	 * Locates the minimum in heap, sets min to it and prevMin to the node before it. 
@@ -121,8 +122,8 @@ public class BinomialHeap
 	 */
 	public void delete(HeapItem item) 
 	{    
-		minKey=min.item.key;
-		diff=item.key-minKey;
+		int minKey=min.item.key;
+		int diff=item.key-minKey;
 		decreaseKey(item,diff);
 		deleteMin();
 	}
