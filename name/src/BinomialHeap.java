@@ -110,7 +110,7 @@ public class BinomialHeap
 		prevMin=last;
 		HeapNode cur=first;
 		min=first;
-		while (cur.next!=first){
+		while (cur.next!=first){ //happens numTrees times - O(log(n))
 			HeapNode nxt=cur.next;
 			if (nxt.item.key<min.item.key){
 				prevMin=cur;
@@ -145,7 +145,7 @@ public class BinomialHeap
 		HeapNode cur=item.node;
 		int key=item.key-diff;
 		item.key=key; 
-		while (cur.parent!=null && cur.parent.item.key>key){
+		while (cur.parent!=null && cur.parent.item.key>key){ //happens depth(item.node) times, O(log(n)) 
 			cur.parent.item.node=cur;
 			item.node=cur.parent;
 			cur.item=cur.parent.item;
@@ -197,9 +197,9 @@ public class BinomialHeap
 		HeapNode cur1=first;
 		int n=size;
 		int m=heap2.size;
-		int r=0;
-		while (n>>r!=0 && m>>r!=0){ //while rank is smaller than maximal rank in both trees
-			while ((n>>(r+1))<<(r+1)==n && (m>>(r+1))<<(r+1)==m){ //both dont have a tree of rank r
+		int r=cur1.rank>cur2.rank?cur2.rank:cur1.rank;
+		while (n>>r!=0 && m>>r!=0){ //while rank is smaller than maximal rank in both trees, happens at most numTrees(self)+numTrees(heap2) times = O(log(n)+log(m))
+			if (cur1.rank>r&&cur2.rank>r){ //both dont have a tree of rank r
 				if(carry!=null){ //add carry to "empty slot"
 					carry.next=cur1;
 					prev1.next=carry;
@@ -207,9 +207,9 @@ public class BinomialHeap
 					carry=null;
 					numTree++;
 				}
-				r++;
+				r=cur1.rank>cur2.rank?cur2.rank:cur1.rank;
 			} //out of this while means either n or m have a tree of rank r
-			if ((m>>(r+1))<<(r+1)==m){ //meaning self has a tree of rank r, heap2 doesn't
+			if (cur2.rank>r){ //meaning self has a tree of rank r, heap2 doesn't
 				if (carry==null){prev1=cur1;
 				cur1=cur1.next;}
 				else{
@@ -241,7 +241,7 @@ public class BinomialHeap
 				}
 				n=(n>>(r+1))<<(r+1); //"deleting" the tree from self
 			}
-			else if ((n>>(r+1))<<(r+1)==n){	//meaning heap2 has a tree of rank r, self doesn't
+			else if (cur1.rank>r){	//meaning heap2 has a tree of rank r, self doesn't
 				if (carry==null){
 					numTree++;
 					HeapNode p =cur2;
@@ -270,8 +270,6 @@ public class BinomialHeap
 			else{ //meaning both have a tree of rank r, if theres carry - add it to self
 				boolean end1=(cur1==last);
 				boolean end2=(cur2==heap2.last);
-				//System.out.println("last1 key="+last.item.key+" last2 key="+heap2.last.item.key);
-				//System.out.println("cur1 key="+cur1.item.key+" cur2.key="+cur2.item.key);
 				boolean start=(cur1==first);
 				HeapNode p=cur2.next;
 				numTree--;
@@ -307,13 +305,10 @@ public class BinomialHeap
 					first=prev1.next;
 				}
 				cur1=prev1.next;
-				prev1=end1?prev1:prev1.next; //FIGURE OUT WHY THE HELL WORKS
-				//if (cur1==prev1&& !(end1)) System.out.println("weird...");
 				cur2=p;//cur2.next from before linking, or carry if end2
 				n=(n>>(r+1))<<(r+1);
 				m=(m>>(r+1))<<(r+1);
 			}
-			//System.out.println("carry is "+(carry==null?null:carry.item.key));
 			r++;
 		}
 		if (n>>r==0){//concate the rest of heap2 to heap1
@@ -326,9 +321,9 @@ public class BinomialHeap
 		return;  		
 	}
 	/* ******Runtime Analysis for meld****** 
-	* There are two loops - in lines 183&184. In each Iteration of each of them, r grows by at least 1, so the maximum total iterations are 
+	* There is one loop - line 201. In each Iteration of the loop, r grows by at least 1, so the maximum total iterations are 
 	* the maximum value of r=min(log(n),log(m)) where n=size(self),m=size(heap2). 
-	* notice the call for locateNextmin in line 315, which adds O(log(n+m))=O(max(log(n)+log(m))) to the Runtime.
+	* notice the call for locateNextmin in line 321, which adds O(log(n+m))=O(max(log(n)+log(m))) to the Runtime.
 	* Besides, every other line runs at constant time, so runtime is O(r+log(n+m))=O(log(n+m))=O(log(n_new)).
 	*/
 
@@ -428,7 +423,7 @@ public class BinomialHeap
 	}
 	public static void main(String[] args){
 		BinomialHeap heap=new BinomialHeap();
-		System.out.println("Now for the stupid tests!!!\nnumTrees: func="+heap.numTrees()+" expected="+heap.numTree+"\nsize: func="+heap.size()+" expected="+heap.size+"\nempty: func="+heap.empty()+" expected="+(heap.size==0));
+		//System.out.println("Now for the stupid tests!!!\nnumTrees: func="+heap.numTrees()+" expected="+heap.numTree+"\nsize: func="+heap.size()+" expected="+heap.size+"\nempty: func="+heap.empty()+" expected="+(heap.size==0));
 		HeapItem item15 =heap.insert(15,"15");
 		heap.insert(40,"40");
 		heap.insert(20,"20");
@@ -437,13 +432,24 @@ public class BinomialHeap
 		heap.insert(31,"31");
 		heap.insert(58,"58");
 		heap.insert(67,"67");
+		System.out.println(heap.easyTester());
 		heap.insert(9,"9"); 
 		heap.insert(33,"33");
 		heap.insert(23,"23");
-		System.out.println(heap.easyTester());
 		heap.delete(item15);
+		System.out.println("***************heap**************");
 		System.out.println(heap.easyTester());
-		System.out.println("Now for the stupid tests!!!\nnumTrees: func="+heap.numTrees()+" expected="+heap.numTree+"\nsize: func="+heap.size()+" expected="+heap.size+"\nempty: func="+heap.empty()+" expected="+(heap.size==0));
+		BinomialHeap heap2=new BinomialHeap();
+		int[] arr = {22,32,14,57,39,31,10,13,42,55,69};
+		for (int i:arr) heap2.insert(i,""+i);
+		System.out.println("***************heap2**************");
+		System.out.println(heap2.easyTester());
+		heap.meld(heap2);
+		System.out.println("***************meld**************");
+		System.out.println(heap.easyTester());
+		heap.deleteMin();
+		System.out.println(heap.easyTester());
+		//System.out.println("Now for the stupid tests!!!\nnumTrees: func="+heap.numTrees()+" expected="+heap.numTree+"\nsize: func="+heap.size()+" expected="+heap.size+"\nempty: func="+heap.empty()+" expected="+(heap.size==0));
 
 
 	}
